@@ -1,0 +1,33 @@
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: downward-sample
+  namespace: default
+  labels:
+    foo: bar
+spec:
+  containers:
+    - name: ubuntu
+      image: ubuntu
+      args:
+        - "bash"
+        - "-c"
+        - "echo Namespace: $MY_NAMESPACE && echo Labels: $(cat /etc/pod/labels)"
+      env:
+        - name: MY_NAMESPACE
+          valueFrom:
+            # Exposing via fieldRef directly
+            fieldRef:
+              fieldPath: metadata.namespace
+      volumeMounts:
+        - name: labels
+          mountPath: /etc/pod
+  volumes:
+    - name: labels
+      # Exposing via api mount
+      downwardAPI:
+        items:
+          - path: labels
+            fieldRef:
+              fieldPath: metadata.labels

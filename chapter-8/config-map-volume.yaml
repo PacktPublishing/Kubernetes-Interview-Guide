@@ -1,0 +1,31 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: volume-sample
+  namespace: default
+data:
+  1-file.txt: |
+    One two three
+    I'm not the Superman :(
+  2-file.txt: hello
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volume-sample
+  namespace: default
+spec:
+  containers:
+    - name: sample
+      image: busybox
+      command: [ "/bin/sh", "-c", "cat /data/test/*" ]
+      volumeMounts:
+      - name: volume-sample
+        mountPath: /data/test
+        readOnly: true
+  volumes:
+    - name: volume-sample
+      configMap:
+        name: volume-sample
+  restartPolicy: Never

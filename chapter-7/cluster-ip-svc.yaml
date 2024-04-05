@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-sample
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:1.25.4
+        ports:
+          - containerPort: 80
+            name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-sample
+  namespace: default
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-sample
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: hello
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: hello
+    spec:
+      containers:
+      - name: hello
+        image: gcr.io/google-samples/node-hello:1.0
+        ports:
+          - containerPort: 8080
+            name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-sample
+  namespace: default
+spec:
+  selector:
+    app: hello
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080

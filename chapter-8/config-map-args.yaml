@@ -1,0 +1,23 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: args-sample
+  namespace: default
+data:
+  TEST_VAR: hello from the book
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: args-sample
+  namespace: default
+spec:
+  containers:
+    - name: sample
+      image: busybox
+      command: [ "/bin/sh", "-c", "echo $(TEST_VAR)" ]
+      envFrom:
+      - configMapRef:
+          name: args-sample
+  restartPolicy: Never

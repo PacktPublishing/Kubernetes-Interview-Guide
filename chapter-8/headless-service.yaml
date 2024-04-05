@@ -1,0 +1,49 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: sample-rabbitmq
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      app: sample-rabbitmq
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: sample-rabbitmq
+    spec:
+      containers:
+      - name: sample-rabbitmq
+        image: rabbitmq:3
+        ports:
+          - containerPort: 5672
+            name: rmq
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-rabbitmq
+  namespace: default
+spec:
+  selector:
+    app: sample-rabbitmq
+  ports:
+    - protocol: TCP
+      port: 5672
+      targetPort: 5672
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sample-rabbitmq-headless
+  namespace: default
+spec:
+  clusterIP: None
+  selector:
+    app: sample-rabbitmq
+  ports:
+    - protocol: TCP
+      port: 5672
+      targetPort: 5672
