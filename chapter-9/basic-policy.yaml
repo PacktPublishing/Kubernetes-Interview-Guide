@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-github
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-github
+  namespace: test-github
+  labels:
+    app: test
+    component: github
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test
+      component: github
+  template:
+    metadata:
+      name: test-github
+      labels:
+        app: test
+        component: github
+    spec:
+      containers:
+        - name: curl
+          image: curlimages/curl
+          command:
+          - /bin/sh
+          - -c
+          - "set -e; while true; do curl --fail https://github.com -I -L --connect-timeout 5; sleep 5; done"
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-github-deny
+  namespace: test-github
+spec:
+  podSelector:
+    matchLabels:
+      component: github
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            # cidr: 140.82.121.4/32 <- correct GitHub IP
+            cidr: 140.82.121.5/32
+      ports:
+        - protocol: TCP
+          port: 443
+          endPort: 443
+    # We have to allow the DNS requests as well
+    - to:
+      - namespaceSelector:
+          matchLabels:
+            kubernetes.io/metadata.name: kube-system
+        podSelector:
+          matchLabels:
+            k8s-app: kube-dns
+      ports:
+      - protocol: UDP
+        port: 53

@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cilium-test
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-http-server
+  namespace: cilium-test
+  labels:
+    app.kubernetes.io/name: http-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: http-server
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: http-server
+    spec:
+      containers:
+      - name: http
+        image: mendhak/http-https-echo
+        livenessProbe:
+          httpGet:
+            path: /version
+            port: 8080
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        ports:
+          - containerPort: 8080
+            name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-http-server
+  namespace: cilium-test
+  labels:
+    app.kubernetes.io/name: http-server
+spec:
+  selector:
+    app.kubernetes.io/name: http-server
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-http-post
+  namespace: cilium-test
+  labels:
+    app.kubernetes.io/name: test-http
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: test-http
+  template:
+    metadata:
+      name: test-http
+      labels:
+        app.kubernetes.io/name: test-http
+    spec:
+      containers:
+        - name: curl
+          image: curlimages/curl
+          command:
+          - /bin/sh
+          - -c
+          - "set -e; while true; do curl --fail http://test-http-server/test -I --connect-timeout 5 -X POST; sleep 1; done"
+---
+apiVersion: "cilium.io/v2"
+kind: CiliumNetworkPolicy
+metadata:
+  name: test-http-post
+  namespace: cilium-test
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: http-server
+  ingress:
+    - fromEndpoints:
+      - matchLabels:
+          "k8s:io.kubernetes.pod.namespace": cilium-test
+      toPorts:
+        - ports:
+          - port: "8080"
+            protocol: TCP
+          rules:
+            http:
+              - method: "POST"
+                path: "/test"
+  egress:
+    - toEndpoints:
+      - matchLabels:
+          "k8s:io.kubernetes.pod.namespace": cilium-test
