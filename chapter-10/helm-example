@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-config
+  labels:
+    app: {{ .Chart.Name }}
+data:
+  favoriteDrink: {{ .Values.favorite.drink | default "coffee" | quote }}
+  greeting: {{ if .Values.greeting }}{{ .Values.greeting }}{{ else }} "Hello, World!" {{ end }}
+  items: |
+    {{- range .Values.items }}
+    - {{ . | quote }}
+    {{- end }}
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+spec:
+  replicas: {{ .Values.replicas | default 2 }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}
+    spec:
+      containers:
+        - name: {{ .Chart.Name }}-container
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag | default "latest" }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: CONFIG_GREETING
+              valueFrom:
+                configMapKeyRef:
+                  name: {{ .Release.Name }}-config
+                  key: greeting

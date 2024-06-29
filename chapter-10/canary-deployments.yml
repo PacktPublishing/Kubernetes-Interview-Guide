@@ -1,0 +1,45 @@
+# Deployment for the stable version
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-app
+spec:
+  replicas: 9
+  selector:
+    matchLabels:
+      app: interview-app
+      layer: frontend
+      version: stable
+  template:
+    metadata:
+      labels:
+        app: interview-app
+        layer: frontend
+        version: stable
+    spec:
+      containers:
+      - name: interview-app
+        image: interview:v5
+---
+# Deployment for the canary version
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-app-canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: interview-app
+      layer: frontend
+      version: canary
+  template:
+    metadata:
+      labels:
+        app: interview-app
+        layer: frontend
+        version: canary
+    spec:
+      containers:
+      - name: interview-app
+        image: interview:v6

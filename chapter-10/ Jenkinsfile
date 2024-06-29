@@ -1,0 +1,39 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git 'https://your-repo-url.git'
+            }
+        }
+        stage('Build Manifests') {
+            steps {
+                sh 'kustomize build overlays/staging > staging-manifest.yaml'
+            }
+        }
+        stage('Deploy to Staging') {
+            steps {
+                sh 'kubectl apply -f staging-manifest.yaml'
+            }
+        }
+        stage('Run Tests') {
+            steps {
+                // Add steps to run your tests here
+            }
+        }
+        stage('Promote to Production') {
+            steps {
+                input message: 'Promote to production?'
+                sh 'kustomize build overlays/production > production-manifest.yaml'
+                sh 'kubectl apply -f production-manifest.yaml'
+            }
+        }
+    }
+    post {
+        failure {
+            mail to: 'dev-team@example.com',
+                 subject: "Failed Pipeline: ${currentBuild.fullDisplayName}",
+                 body: "Something is wrong with ${env.BUILD_URL}"
+        }
+    }
+}
