@@ -1,0 +1,12 @@
+apiVersion: packt.com/v1
+kind: Book
+metadata:
+  labels:
+    app.kubernetes.io/name: book
+    app.kubernetes.io/instance: book-sample
+    app.kubernetes.io/part-of: books-operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: books-operator
+  name: book-sample
+spec:
+  # TODO(user): Add fields here

@@ -1,0 +1,8 @@
+---
+apiVersion: packt.com/v1
+kind: Book
+metadata:
+  name: k8s-interview-guide
+spec:
+  book: "K8S interviewing guide"
+  year: 2024
