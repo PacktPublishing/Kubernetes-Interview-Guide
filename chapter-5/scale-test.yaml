@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scale-test
+  namespace: default
+spec:
+  replicas: 10
+  selector:
+    matchLabels: { app: scale-test }
+  template:
+    metadata:
+      labels: { app: scale-test }
+    spec:
+      containers:
+        - name: pause
+          image: registry.k8s.io/pause:3.9
+          resources:
+            requests: { cpu: "200m", memory: "256Mi" }
+            limits:   { cpu: "200m", memory: "256Mi" }
