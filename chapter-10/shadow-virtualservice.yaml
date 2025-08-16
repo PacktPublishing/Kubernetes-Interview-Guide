@@ -1,0 +1,32 @@
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: my-app-virtualservice
+spec:
+  hosts:
+  - my-app-service # The Kubernetes service that receives traffic
+  http:
+  - route:
+    - destination:
+        host: my-app-service
+        subset: stable # why it matters: This defines the primary destination for live traffic.
+      weight: 100
+    mirror:
+      host: my-app-service
+      subset: shadow # why it matters: This defines the shadow destination. Traffic is copied here.
+    mirrorPercentage:
+      value: 100.0 # why it matters: You can choose to mirror only a fraction of traffic.
+---
+apiVersion: networking.istio.io/v1beta1
+kind: DestinationRule
+metadata:
+  name: my-app-destinationrule
+spec:
+  host: my-app-service
+  subsets:
+  - name: stable
+    labels:
+      version: v1
+  - name: shadow
+    labels:
+      version: v2
