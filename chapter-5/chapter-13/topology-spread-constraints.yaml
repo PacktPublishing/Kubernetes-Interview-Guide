@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-deployment
+spec:
+  replicas: 6
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      topologySpreadConstraints:
+      - maxSkew: 1
+        # why it matters: Prevents all pods from landing in one availability zone.
+        topologyKey: "topology.kubernetes.io/zone"
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: my-app
+      - maxSkew: 1
+        # why it matters: Ensures pods are also spread across nodes within each zone.
+        topologyKey: "kubernetes.io/hostname"
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: my-app
+      containers:
+      - name: my-app-container
+        image: nginx
